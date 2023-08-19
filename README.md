@@ -8,7 +8,7 @@ Simple fastapi app cloning openai completion api
 
 Download the model from <https://huggingface.co/piratos/ct2fast-docsgpt-14b>
 
-# ENV
+## ENV
 
 Make sure an environment variable `MODEL_PATH` is accessible to the container runtime
 containing the path to the model folder
