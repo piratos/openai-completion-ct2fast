@@ -1,0 +1,21 @@
+version: "3.9"
+
+services:
+  openai:
+    build: ./
+    runtime: nvidia
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    environment:
+      - MODEL_PATH=/app/ct2fast-docsgpt-14b
+      - LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH
+    ports:
+      - "8000:8000"
+    volumes:
+      - /usr/local/cuda-11.8:/usr/local/cuda
+      - /path/to/ct2fast-docsgpt-14b:/app/ct2fast-docsgpt-14b
