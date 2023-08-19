@@ -9,14 +9,13 @@ import os
 
 app = FastAPI()
 
-# Load pre-trained model and tokenizer
+# Load pre-trained model
 if os.environ.get("MODEL_PATH"):
     MODEL_NAME = os.environ.get("MODEL_PATH")
 else:
     raise Exception("MODEL_PATH env variable not defined")
 
 model = GeneratorCT2fromHfHub(model_name_or_path=MODEL_NAME)
-tokenizer = model.tokenizer
 
 # Models
 class ErrorResponse(BaseModel):
@@ -73,7 +72,6 @@ class CompletionStreamResponse(BaseModel):
     id: str = Field(default_factory=lambda: f"cmpl-{shortuuid.random()}")
     object: str = "text_completion"
     created: int = Field(default_factory=lambda: int(time.time()))
-    model: str
     choices: List[CompletionResponseStreamChoice]
 
 @app.post("/completions", response_model=CompletionResponse)
@@ -83,13 +81,13 @@ async def completion(completion_request: CompletionRequest):
         # Generate response from the model
         output = model.generate(
             text=completion_request.prompt,
-            # max_length=completion_request.max_tokens,
-            max_length=900,
+            max_length=completion_request.max_tokens,
             include_prompt_in_result=False
         )
 
         print(f"[+] LLM output: {output}")
         choices = []
+        # langchain/Docsgpt expect 3 choices so we repeat the same
         for i in range(3):
             choices.append(CompletionResponseChoice(index=i, text=output[0]))
         usage_info = UsageInfo()
@@ -101,7 +99,6 @@ async def completion(completion_request: CompletionRequest):
         print(f"[+] Response {response}")
         return response
     except Exception as e:
-        raise
         raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":
